@@ -117,7 +117,7 @@ def inject_css() -> None:
     )
 
 
-@st.cache_resource
+@st.cache_resource(max_entries=1)
 def get_services() -> tuple[KnowledgeRetriever, EconNewsAnalyzer, MemoryStore, DailySentimentPipeline]:
     retriever = KnowledgeRetriever(DATA_DIR / "knowledge_base.json")
     analyzer = EconNewsAnalyzer(DATA_DIR / "few_shot_examples.json")
