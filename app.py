@@ -699,8 +699,6 @@ def render_config_tab(analyzer: EconNewsAnalyzer, daily_pipeline: DailySentiment
             if not api_key.strip():
                 st.error("API Key 不能为空")
             else:
-                analyzer.client.reconfigure(api_key, base_url, model)
-                daily_pipeline.reconfigure_client(api_key, base_url, model)
                 st.session_state["user_api_key"] = api_key
                 st.session_state["user_base_url"] = base_url
                 st.session_state["user_model"] = model
@@ -739,6 +737,18 @@ def main() -> None:
     )
     inject_css()
     retriever, analyzer, memory, daily_pipeline = get_services()
+    # 每次渲染时把 session_state 里的用户配置同步到客户端
+    if st.session_state.get("user_api_key"):
+        analyzer.client.reconfigure(
+            st.session_state["user_api_key"],
+            st.session_state.get("user_base_url", ""),
+            st.session_state.get("user_model", ""),
+        )
+        daily_pipeline.reconfigure_client(
+            st.session_state["user_api_key"],
+            st.session_state.get("user_base_url", ""),
+            st.session_state.get("user_model", ""),
+        )
     init_session(retriever, daily_pipeline)
 
     st.markdown(
