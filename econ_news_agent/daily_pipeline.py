@@ -61,3 +61,6 @@ class DailySentimentPipeline:
     def latest(self) -> dict[str, Any] | None:
         history = self.load_history()
         return history[0] if history else None
+
+    def reconfigure_client(self, api_key: str, base_url: str, model: str) -> None:
+        self.analyzer.client.reconfigure(api_key, base_url, model)

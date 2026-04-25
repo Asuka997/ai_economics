@@ -15,6 +15,7 @@ except ImportError:
 from econ_news_agent.analyzer import EconNewsAnalyzer
 from econ_news_agent.daily_pipeline import DailySentimentPipeline
 from econ_news_agent.knowledge import KnowledgeRetriever
+from econ_news_agent.llm_client import PROVIDER_PRESETS
 from econ_news_agent.memory import MemoryStore
 
 
@@ -151,11 +152,14 @@ def render_stat_card(label: str, value: str) -> None:
 
 
 def display_engine_name(engine_mode: str) -> str:
-    model_name = os.getenv("ARK_MODEL", os.getenv("OPENAI_MODEL", "doubao-seed-2-0-mini-260215")).strip()
     if engine_mode == "briefing-unavailable":
         return "未运行"
     if engine_mode.startswith("local"):
         return "本地引擎"
+    model_name = st.session_state.get(
+        "user_model",
+        os.getenv("ARK_MODEL", "doubao-seed-2-0-mini-260215"),
+    ).strip()
     return model_name
 
 
@@ -658,6 +662,75 @@ def render_daily_tab(daily_pipeline: DailySentimentPipeline) -> None:
                 st.write(f"- {line}")
 
 
+def render_config_tab(analyzer: EconNewsAnalyzer, daily_pipeline: DailySentimentPipeline) -> None:
+    st.subheader("模型配置")
+    st.markdown(
+        '<div class="note">在此填写您自己的 API Key，配置后优先使用您的模型。配置仅在当前会话有效，刷新页面后需重新填写。</div>',
+        unsafe_allow_html=True,
+    )
+
+    provider_labels = {"doubao": "豆包 (Ark)", "deepseek": "DeepSeek"}
+    provider = st.selectbox(
+        "模型提供商",
+        options=list(provider_labels.keys()),
+        format_func=lambda k: provider_labels[k],
+    )
+    preset = PROVIDER_PRESETS[provider]
+
+    col_left, col_right = st.columns(2)
+    with col_left:
+        api_key = st.text_input(
+            "API Key",
+            type="password",
+            placeholder="填写您的 API Key",
+            value=st.session_state.get("user_api_key", ""),
+        )
+        base_url = st.text_input(
+            "Base URL",
+            value=st.session_state.get("user_base_url", preset["base_url"]),
+        )
+    with col_right:
+        model = st.text_input(
+            "模型名称",
+            value=st.session_state.get("user_model", preset["model"]),
+        )
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("应用配置", type="primary", use_container_width=True):
+            if not api_key.strip():
+                st.error("API Key 不能为空")
+            else:
+                analyzer.client.reconfigure(api_key, base_url, model)
+                daily_pipeline.reconfigure_client(api_key, base_url, model)
+                st.session_state["user_api_key"] = api_key
+                st.session_state["user_base_url"] = base_url
+                st.session_state["user_model"] = model
+                st.success(f"已切换到 {provider_labels[provider]} · {model}")
+                st.rerun()
+
+    # 当切换提供商时自动更新预设值
+    if st.session_state.get("_last_provider") != provider:
+        st.session_state["user_base_url"] = preset["base_url"]
+        st.session_state["user_model"] = preset["model"]
+        st.session_state["_last_provider"] = provider
+        st.rerun()
+
+    st.markdown("---")
+    st.markdown("**当前生效配置**")
+    current_key = analyzer.client.api_key
+    st.markdown(
+        f"""
+        <div class="section-card">
+            <div class="note">
+            API Key：{"已配置 ✓" if current_key else "未配置"}<br>
+            Base URL：{analyzer.client.base_url}<br>
+            模型：{analyzer.client.model}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Econews | 经济新闻智能分析助手",
@@ -681,15 +754,15 @@ def main() -> None:
     with st.sidebar:
         render_sidebar_course_info()
         st.markdown("---")
-        ark_available = analyzer.client.available
-        engine_options = ["Ark 在线模型", "本地规则引擎"]
-        default_index = 0 if ark_available else 1
+        llm_available = analyzer.client.available
+        engine_options = ["在线模型", "本地规则引擎"]
+        default_index = 0 if llm_available else 1
         engine_choice = st.radio(
             "分析引擎",
             options=engine_options,
             index=default_index,
-            disabled=not ark_available,
-            help="未配置 ARK_API_KEY 时只能使用本地引擎" if not ark_available else None,
+            disabled=not llm_available,
+            help="请先在「配置」页面填写 API Key" if not llm_available else None,
         )
         st.session_state["force_local"] = (engine_choice == "本地规则引擎")
         st.markdown("---")
@@ -699,11 +772,13 @@ def main() -> None:
                 run_analysis(case["content"], retriever, analyzer, memory)
                 st.rerun()
 
-    news_tab, daily_tab = st.tabs(["单条新闻分析", "每日情绪看板"])
+    news_tab, daily_tab, config_tab = st.tabs(["单条新闻分析", "每日情绪看板", "⚙️ 配置"])
     with news_tab:
         render_single_news_tab(retriever, analyzer, memory)
     with daily_tab:
         render_daily_tab(daily_pipeline)
+    with config_tab:
+        render_config_tab(analyzer, daily_pipeline)
 
 
 if __name__ == "__main__":
