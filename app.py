@@ -504,15 +504,17 @@ def render_daily_tab(daily_pipeline: DailySentimentPipeline) -> None:
         run_cols = st.columns(2)
         with run_cols[0]:
             if st.button("抓取今日新闻", type="primary", use_container_width=True):
-                refresh_daily_snapshot(daily_pipeline, source_type=source_type)
+                with st.spinner("正在抓取新闻并分析，请稍候…"):
+                    refresh_daily_snapshot(daily_pipeline, source_type=source_type)
                 st.rerun()
         with run_cols[1]:
             if st.button("使用手动链接", use_container_width=True):
-                refresh_daily_snapshot(
-                    daily_pipeline,
-                    manual_url=manual_url,
-                    source_type=source_type,
-                )
+                with st.spinner("正在抓取新闻并分析，请稍候…"):
+                    refresh_daily_snapshot(
+                        daily_pipeline,
+                        manual_url=manual_url,
+                        source_type=source_type,
+                    )
                 st.rerun()
 
         history = daily_pipeline.load_history()
