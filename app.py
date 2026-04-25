@@ -151,16 +151,12 @@ def render_stat_card(label: str, value: str) -> None:
 
 
 def display_engine_name(engine_mode: str) -> str:
-    model_name = os.getenv("ARK_MODEL", os.getenv("OPENAI_MODEL", "")).strip().lower()
+    model_name = os.getenv("ARK_MODEL", os.getenv("OPENAI_MODEL", "doubao-seed-2-0-mini-260215")).strip()
     if engine_mode == "briefing-unavailable":
         return "未运行"
     if engine_mode.startswith("local"):
         return "本地引擎"
-    if "deepseek" in model_name:
-        return "deepseek"
-    if model_name:
-        return model_name
-    return "在线模型"
+    return model_name
 
 
 def render_chip_row(values: list[str]) -> None:
