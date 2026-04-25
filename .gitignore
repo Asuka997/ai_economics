@@ -1,0 +1,23 @@
+# 环境变量（含 API key，绝不提交）
+.env
+.env.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# 数据文件（可选，按需取消注释）
+# data/
+
+# IDE
+.vscode/
+.idea/
+
+# 日志
+*.log

@@ -1,0 +1,47 @@
+[
+  {
+    "input": "央行宣布下调存款准备金率0.5个百分点，以保持银行体系流动性合理充裕。",
+    "output": {
+      "summary": "央行通过降准释放长期流动性，目标是改善金融条件与稳定增长预期。",
+      "topic": "货币政策",
+      "core_event": "央行下调存款准备金率",
+      "sentiment": "偏正面",
+      "impact_targets": ["银行", "房地产", "成长股"],
+      "impact_chain": "流动性改善 -> 融资成本和风险偏好变化 -> 信贷与估值修复",
+      "risk_points": ["若信贷需求不足，政策效果可能偏弱"],
+      "follow_up_questions": ["这会先利好哪些板块？"],
+      "evidence": ["降准通常改善流动性预期"],
+      "engine_mode": "few-shot-example"
+    }
+  },
+  {
+    "input": "多地继续出台房地产去库存政策，支持存量商品房收购和住房消费。",
+    "output": {
+      "summary": "房地产政策继续围绕去库存和需求修复展开，意在稳定地产链。",
+      "topic": "房地产",
+      "core_event": "地方加码去库存政策",
+      "sentiment": "中性偏正面",
+      "impact_targets": ["房地产", "家居建材", "银行"],
+      "impact_chain": "政策支持 -> 购房需求与房企资金预期变化 -> 地产链修复",
+      "risk_points": ["居民收入预期和库存压力仍可能限制政策效果"],
+      "follow_up_questions": ["与之前政策相比，这次力度如何？"],
+      "evidence": ["去库存政策会影响地产销售和相关产业链"],
+      "engine_mode": "few-shot-example"
+    }
+  },
+  {
+    "input": "海外需求走弱导致部分出口企业订单承压，制造业景气度面临考验。",
+    "output": {
+      "summary": "外需走弱使出口链企业订单与景气度承压，制造业利润预期可能受到影响。",
+      "topic": "国际贸易",
+      "core_event": "外需走弱拖累出口订单",
+      "sentiment": "偏谨慎",
+      "impact_targets": ["出口链", "制造业", "航运"],
+      "impact_chain": "外需下降 -> 出口订单减少 -> 企业利润与就业承压",
+      "risk_points": ["若汇率和海外政策继续变化，不确定性会进一步放大"],
+      "follow_up_questions": ["历史上类似外需收缩对哪些行业影响最大？"],
+      "evidence": ["出口订单减少会压制制造业景气度"],
+      "engine_mode": "few-shot-example"
+    }
+  }
+]
