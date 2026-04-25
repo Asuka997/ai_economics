@@ -264,7 +264,7 @@ def run_analysis(
 ) -> None:
     topic_hint = news_text[:120]
     docs = retriever.search(topic_hint, top_k=4)
-    analysis = analyzer.analyze(news_text, docs)
+    analysis = analyzer.analyze(news_text, docs, force_local=st.session_state.get("force_local", False))
     profile = memory.update_profile(USER_ID, analysis)
 
     st.session_state.news_text = news_text
@@ -401,6 +401,7 @@ def render_single_news_tab(
                         "recent_questions": [item["content"] for item in st.session_state.chat_history[-4:]],
                         "profile": st.session_state.current_profile,
                     },
+                    force_local=st.session_state.get("force_local", False),
                 )
             st.session_state.retrieved_docs = docs
             st.session_state.agent_plan = followup_result["plan"]
@@ -679,6 +680,18 @@ def main() -> None:
 
     with st.sidebar:
         render_sidebar_course_info()
+        st.markdown("---")
+        ark_available = analyzer.client.available
+        engine_options = ["Ark 在线模型", "本地规则引擎"]
+        default_index = 0 if ark_available else 1
+        engine_choice = st.radio(
+            "分析引擎",
+            options=engine_options,
+            index=default_index,
+            disabled=not ark_available,
+            help="未配置 ARK_API_KEY 时只能使用本地引擎" if not ark_available else None,
+        )
+        st.session_state["force_local"] = (engine_choice == "本地规则引擎")
         st.markdown("---")
         st.subheader("样例新闻")
         for case in st.session_state.sample_cases:

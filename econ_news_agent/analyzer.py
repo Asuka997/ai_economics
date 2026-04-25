@@ -155,8 +155,14 @@ class EconNewsAnalyzer:
         self.client = OpenAICompatibleClient()
         self.few_shots = load_few_shots(few_shot_path)
 
-    def analyze(self, news_text: str, retrieved_docs: list[dict[str, Any]]) -> dict[str, Any]:
-        if self.client.available:
+    def analyze(
+        self,
+        news_text: str,
+        retrieved_docs: list[dict[str, Any]],
+        *,
+        force_local: bool = False,
+    ) -> dict[str, Any]:
+        if self.client.available and not force_local:
             try:
                 return self._llm_analyze(news_text, retrieved_docs)
             except Exception as exc:
@@ -173,9 +179,11 @@ class EconNewsAnalyzer:
         analysis: dict[str, Any],
         retrieved_docs: list[dict[str, Any]],
         session_context: dict[str, Any],
+        *,
+        force_local: bool = False,
     ) -> dict[str, Any]:
         plan = build_plan(question)
-        if self.client.available:
+        if self.client.available and not force_local:
             try:
                 answer = self._llm_followup(
                     question=question,
