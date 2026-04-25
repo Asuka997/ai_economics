@@ -372,7 +372,8 @@ def render_single_news_tab(
             placeholder="例如：央行、房地产、出口、消费、财政政策相关的新闻内容",
         )
         if st.button("开始分析", type="primary", use_container_width=True):
-            run_analysis(news_text, retriever, analyzer, memory)
+            with st.spinner("正在分析中，请稍候…"):
+                run_analysis(news_text, retriever, analyzer, memory)
 
         render_history_card(retriever, analyzer, memory)
 
@@ -392,18 +393,19 @@ def render_single_news_tab(
         followup = st.chat_input("继续追问，例如：为什么这会影响房地产？")
         if followup:
             st.session_state.chat_history.append({"role": "user", "content": followup})
-            query = f"{followup}\n主题：{st.session_state.analysis['topic']}"
-            docs = retriever.search(query, top_k=4, kinds=["concept", "case"])
-            followup_result = analyzer.answer_followup(
-                question=followup,
-                news_text=st.session_state.news_text,
-                analysis=st.session_state.analysis,
-                retrieved_docs=docs,
-                session_context={
-                    "recent_questions": [item["content"] for item in st.session_state.chat_history[-4:]],
-                    "profile": st.session_state.current_profile,
-                },
-            )
+            with st.spinner("正在思考…"):
+                query = f"{followup}\n主题：{st.session_state.analysis['topic']}"
+                docs = retriever.search(query, top_k=4, kinds=["concept", "case"])
+                followup_result = analyzer.answer_followup(
+                    question=followup,
+                    news_text=st.session_state.news_text,
+                    analysis=st.session_state.analysis,
+                    retrieved_docs=docs,
+                    session_context={
+                        "recent_questions": [item["content"] for item in st.session_state.chat_history[-4:]],
+                        "profile": st.session_state.current_profile,
+                    },
+                )
             st.session_state.retrieved_docs = docs
             st.session_state.agent_plan = followup_result["plan"]
             st.session_state.chat_history.append(
